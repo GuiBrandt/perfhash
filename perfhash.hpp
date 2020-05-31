@@ -103,7 +103,7 @@ namespace hashing {
         typename Key,
         typename Value,
         typename RUHashFunction = ru_hash_function<Key>,
-        typename Allocator = std::allocator<Value>,
+        typename Allocator = std::allocator<std::pair<const Key, Value>>,
         std::enable_if_t<std::is_copy_constructible_v<Key>, int> = 0,
         std::enable_if_t<std::is_default_constructible_v<Value>, int> = 0,
         std::enable_if_t<std::is_copy_constructible_v<Value>, int> = 0
@@ -134,7 +134,7 @@ namespace hashing {
             populate(first, last);
         }
 
-        perfect_hash_map(std::initializer_list<value_type>& values,
+        perfect_hash_map(const std::initializer_list<value_type>& values,
                          const allocator_type& allocator = allocator_type())
                          : this(values.begin(), values.end(), allocator) {};
         
@@ -163,9 +163,10 @@ namespace hashing {
 
         struct SubHash {
             hash_function hash;
-            std::vector<Value, Allocator> buckets;
+            std::vector<std::pair<key_type, mapped_type>, allocator_type> buckets;
 
-            SubHash(random_device_t& random_device, const Allocator& allocator)
+            SubHash(random_device_t& random_device,
+                    const allocator_type& allocator)
                 : buckets(allocator) {
                 hash.seed(random_device);
             }
@@ -185,23 +186,27 @@ namespace hashing {
             }
             
             void add(const value_type& pair) {
-                buckets.at(hash(pair.first)) = pair.second;
+                buckets[hash(pair.first)] = pair;
             }
 
             const_reference at(const key_type& key) const {
-                return buckets[hash(key)];
+                decltype(buckets)::const_reference pair = buckets[hash(key)];
+                if (pair.first != key) throw std::out_of_range("No such key");
+                return pair.second;
             }
 
             reference at(const key_type& key) {
-                return buckets[hash(key)];
+                decltype(buckets)::reference pair = buckets[hash(key)];
+                if (pair.first != key) throw std::out_of_range("No such key");
+                return pair.second;
             }
             
             const_reference operator[](const key_type& key) const {
-                return buckets[hash(key)];
+                return buckets[hash(key)].second;
             }
 
             reference operator[](const key_type& key) {
-                return buckets[hash(key)];
+                return buckets[hash(key)].second;
             }
 
             size_t capacity() const {

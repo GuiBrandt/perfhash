@@ -23,6 +23,7 @@ int main(int argc, char** argv) {
     h[3] = "teste";
 
     std::cout << h.at(3) << std::endl;
+    std::cout << h.at(5) << std::endl;
 
     std::cout << "[end]" << std::endl;
 
