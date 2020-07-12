@@ -23,9 +23,15 @@ int main(int argc, char** argv) {
     h[3] = "teste";
 
     std::cout << h.at(3) << std::endl;
-    std::cout << h.at(5) << std::endl;
+
+    try {
+        std::cout << h.at(5) << std::endl;
+    } catch (std::out_of_range e) {
+        std::cout << e.what() << std::endl;
+    }
 
     std::cout << "[end]" << std::endl;
+    std::cout << "[start]" << std::endl;
 
     return 0;
 }
